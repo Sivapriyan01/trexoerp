@@ -1,58 +1,200 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# ⚡ TrexoERP — Multi-Tenant Enterprise ERP & Storefront Engine
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="https://img.shields.io/badge/Laravel-11%2B-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel" />
+  <img src="https://img.shields.io/badge/PHP-8.3%2B-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP" />
+  <img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
+  <img src="https://img.shields.io/badge/Vite-5.4-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/Tenancy-Stancl%20v3-0ea5e9?style=for-the-badge" alt="Tenancy" />
+  <img src="https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge" alt="License" />
 </p>
 
-## About Laravel
+<p align="center">
+  <strong>TrexoERP</strong> is a robust, production-ready, multi-tenant Enterprise Resource Planning (ERP) platform featuring an integrated modern headless e-commerce engine. Built for high-volume retail, wholesale, and manufacturing businesses, it delivers tenant-isolated databases, real-time POS, GST accounting, CRM automation, and live customizable online storefronts.
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🌟 Key Features & Modules
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 🏢 1. Robust Multi-Tenancy Engine
+- Powered by `stancl/tenancy` v3.
+- Complete data isolation with dedicated database schemas/files per tenant.
+- Automatic routing via subdomains (e.g. `tenant.domain.com`) or custom root domains.
+- Super Admin portal for tenant onboarding, subscription plans, domain mapping, and impersonation.
 
-## Learning Laravel
+### 🧾 2. Smart POS & Billing Engine
+- **Fast Checkout**: Barcode scanning, keyboard shortcuts, fast customer search, and split-second invoice generation.
+- **Tax & Compliance**: Built-in GST calculation (CGST, SGST, IGST), HSN/SAC codes, and GSTR-1 export.
+- **Invoicing & Print**: Thermal POS receipts (58mm/80mm), standard A4/A5 PDF invoices, and digital invoice links.
+- **Advance & Pre-Orders**: Customer advance deposits, layaway/pre-orders, wallet balances, and instalment tracking.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 📦 3. Inventory & Multi-Branch Management
+- **Stock Movement**: Multi-branch stock transfers with approval workflows and in-transit tracking.
+- **Traceability**: Complete item audit trails with historical stock logs and unit-of-measure conversions.
+- **Returns & Warranty**: RMA management, customer & vendor returns, warranty claim workflows, and expiry date alerts.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 🏭 4. Manufacturing & Production Flow
+- Production planning and multi-stage assembly logs.
+- Dynamic BOM (Bill of Materials) costing, direct/indirect labour, and electricity/MIS overheads.
+- Worker task allocations, efficiency tracking, and piece-rate wage calculation.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+### 🤝 5. CRM & Sales Automation
+- Visual pipeline Kanban boards with customizable deal stages and workspaces.
+- Embeddable public lead capture forms with automatic lead assignment.
+- WhatsApp automation and customer engagement logs.
 
-## Agentic Development
+### 💰 6. Accounting & Financial Reports
+- Double-entry bookkeeping: Chart of Accounts, Journal entries, and ledger postings.
+- Real-time financial analytics: Profit & Loss, Balance Sheet, Trial Balance, and Daily Expense registers.
+- Bi-directional **Tally Prime / ERP 9** integration (XML & JSON ledger synchronization).
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### 🛍️ 7. Integrated Headless Storefront (`website/`)
+- Modern, ultra-responsive React 18 + Vite customer storefront.
+- **Multiple Theme Presets**: Modern Minimal, Premium Dark, Bold Commerce.
+- Live no-code website configurator: update banners, branding, and color palettes directly from the ERP.
+- Instant catalog synchronization: toggle items as "Show on Website", handle online orders, and trigger automatic inventory deduction.
+
+---
+
+## 🛠️ Architecture & Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Backend Framework** | Laravel 11/12 (PHP 8.3+) |
+| **Multi-Tenancy** | `stancl/tenancy` (Database & Tenant Scoping) |
+| **Database** | MySQL / SQLite (Tenant DBs auto-migrated) |
+| **ERP Frontend** | Blade, Alpine.js, Tailwind CSS, Livewire / Vanilla JS |
+| **Online Storefront** | React 18, Vite 5, Lucide Icons, Canvas Confetti |
+| **Document Engine** | Barryvdh DomPDF, Smalot PDF Parser, Maatwebsite Excel |
+| **Reverse Proxy** | Caddy / Nginx for multi-domain routing & automatic SSL |
+
+---
+
+## 🚀 Quick Start & Installation
+
+### 1. Prerequisites
+- **PHP** >= 8.3 with extensions: `pdo`, `mbstring`, `openssl`, `xml`, `curl`, `gd`, `zip`
+- **Composer** >= 2.x
+- **Node.js** >= 18.x & **npm** >= 9.x
+- **SQLite** or **MySQL** server
+
+---
+
+### 2. Clone and Setup Environment
 
 ```bash
-composer require laravel/boost --dev
+# Clone the repository
+git clone https://github.com/Sivapriyan01/trexoerp.git
+cd trexoerp
 
-php artisan boost:install
+# Install PHP dependencies
+composer install
+
+# Copy environment configuration
+cp .env.example .env
+
+# Generate application key
+php artisan key:generate
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+### 3. Database Configuration & Migrations
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Configure your primary database in `.env`:
 
-## Code of Conduct
+```env
+DB_CONNECTION=sqlite
+# Or for MySQL:
+# DB_CONNECTION=mysql
+# DB_HOST=127.0.0.1
+# DB_PORT=3306
+# DB_DATABASE=trexoerp
+# DB_USERNAME=root
+# DB_PASSWORD=your_password
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Run primary migrations:
 
-## Security Vulnerabilities
+```bash
+php artisan migrate --seed
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+### 4. Setup ERP Frontend Assets
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+npm install
+npm run build
+# Or start Vite dev server:
+npm run dev
+```
+
+---
+
+### 5. Setup Headless Online Storefront (`website/`)
+
+```bash
+cd website
+npm install
+npm run dev
+```
+
+The storefront will start locally (typically at `http://localhost:5173`).
+
+---
+
+### 6. Local Multi-Domain Routing (Recommended)
+
+To test subdomains locally (e.g., `admin.localhost`, `tenant1.localhost`), use Caddy:
+
+```bash
+caddy run
+```
+*A ready-to-use [Caddyfile](file:///d:/projects/square/Caddyfile) is included in the project root.*
+
+---
+
+## 📁 Repository Structure
+
+```plaintext
+trexoerp/
+├── app/
+│   ├── Http/Controllers/    # SuperAdmin and Tenant business logic
+│   ├── Models/              # Central & Tenant Eloquent Models
+│   ├── Services/            # Tally, Billing, SMS & WhatsApp integrations
+│   └── Tenancy/             # Tenancy bootstrappers & domain resolvers
+├── config/                  # App, database, and tenancy configuration
+├── database/
+│   ├── migrations/          # Central database migrations
+│   └── migrations/tenant/   # Tenant-scoped database migrations
+├── public/                  # Public web assets
+├── resources/
+│   ├── views/               # ERP Blade views (Billing, CRM, Reports, Setup)
+│   └── js/ & css/           # ERP frontend styles and scripts
+├── routes/
+│   ├── web.php              # Central landing & superadmin routes
+│   └── tenant.php           # Tenant application routes
+├── storage/                 # Storage framework & logs
+└── website/                 # Headless React + Vite e-commerce storefront
+    ├── src/
+    │   ├── themes/          # Modern Minimal, Premium Dark, Bold themes
+    │   └── services/        # ERP API integration layer
+    └── vite.config.js       # Storefront Vite bundler configuration
+```
+
+---
+
+## 🔒 Security & Best Practices
+
+- Ensure `.env` is never committed (it is already included in `.gitignore`).
+- For production, run `php artisan config:cache`, `php artisan route:cache`, and `php artisan view:cache`.
+- Maintain secure database backup schedules using the built-in backup tools.
+
+---
+
+## 📄 License
+
+This project is open-sourced under the [MIT License](LICENSE).
