@@ -1,0 +1,4 @@
+https://localhost, https://192.168.5.111 {
+    tls internal
+    reverse_proxy 127.0.0.1:8000
+}

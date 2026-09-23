@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234f46e5'><rect width='24' height='24' rx='6' fill='%236366f1'/><path d='M7 8h10M7 12h7M7 16h4' stroke='%23fff' stroke-width='2' stroke-linecap='round'/></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Square Store | Modern E-Commerce & ERP Order Hub</title>
+    <meta name="description" content="Official customer storefront synchronized in real-time with Square ERP Order Management System." />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+
+    <!-- MSG91 SendOTP Provider Script & Configuration -->
+    <script type="text/javascript">
+    window.msg91Configuration = {
+      widgetId: "36697164476b323432353839",
+      tokenAuth: "572040TDOpHdLN6aab6e64P1",
+      exposeMethods: true,
+      success: (data) => {
+        console.log('MSG91 Widget Verified:', data);
+        if (typeof window.onMsg91Verified === 'function') {
+          window.onMsg91Verified(data);
+        }
+      },
+      failure: (error) => {
+        console.warn('MSG91 Widget Error:', error);
+      }
+    };
+
+    (function loadOtpScript(urls) {
+        let i = 0;
+        function attempt() {
+            const s = document.createElement('script');
+            s.src = urls[i];
+            s.async = true;
+            s.onload = () => {
+                if (typeof window.initSendOTP === 'function') {
+                    try {
+                        window.initSendOTP(window.msg91Configuration);
+                        console.log('MSG91 initSendOTP initialized successfully');
+                    } catch (e) {
+                        console.warn('MSG91 init error:', e);
+                    }
+                }
+            };
+            s.onerror = () => {
+                i++;
+                if (i < urls.length) {
+                    attempt();
+                }
+            };
+            document.head.appendChild(s);
+        }
+        attempt();
+    })([
+        'https://verify.msg91.com/otp-provider.js',
+        'https://verify.phone91.com/otp-provider.js'
+    ]);
+    </script>
+  </body>
+</html>

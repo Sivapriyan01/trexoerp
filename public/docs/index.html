@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trexo ERP — API Documentation</title>
+  <meta name="description" content="Interactive REST API documentation for Trexo ERP multi-tenant platform." />
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css" />
+  <style>
+    /* ── Brand Overrides ── */
+    :root {
+      --brand: #6c47ff;
+      --brand-dark: #4f2fe0;
+      --surface: #ffffff;
+      --surface2: #f8f9fa;
+      --text: #334155;
+      --muted: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--surface);
+      color: var(--text);
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Top Banner ── */
+    #top-banner {
+      background: linear-gradient(135deg, #6c47ff 0%, #a855f7 50%, #ec4899 100%);
+      padding: 28px 40px 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 4px 40px rgba(108,71,255,0.35);
+    }
+
+    #top-banner .logo {
+      width: 48px; height: 48px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 900; color: #fff;
+      letter-spacing: -1px;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.25);
+      flex-shrink: 0;
+    }
+
+    #top-banner .info h1 {
+      font-size: 22px; font-weight: 700; color: #fff;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    #top-banner .info p {
+      font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 3px;
+    }
+
+    #top-banner .badge {
+      margin-left: auto;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #fff;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Quick-start bar ── */
+    #quick-start {
+      background: var(--surface2);
+      border-bottom: 1px solid rgba(108,71,255,0.2);
+      padding: 14px 40px;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    #quick-start .qs-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+    }
+
+    #quick-start .qs-step {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--text);
+    }
+
+    #quick-start .qs-step .num {
+      width: 22px; height: 22px;
+      background: var(--brand);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: #fff;
+      flex-shrink: 0;
+    }
+
+    #quick-start code {
+      background: rgba(108,71,255,0.15);
+      border: 1px solid rgba(108,71,255,0.3);
+      border-radius: 5px;
+      padding: 2px 8px;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      color: #a78bfa;
+    }
+
+    /* ── Swagger UI container ── */
+    #swagger-ui { max-width: 1280px; margin: 0 auto; padding: 24px 20px 60px; }
+
+    /* Light-mode swagger overrides */
+    .swagger-ui { background: transparent !important; }
+
+    .swagger-ui .topbar { display: none !important; }
+
+    .swagger-ui .info { margin: 0 0 24px !important; }
+    .swagger-ui .info .title { color: var(--text) !important; font-size: 24px !important; }
+    .swagger-ui .info p, .swagger-ui .info li { color: var(--muted) !important; }
+    .swagger-ui .info code { color: #a78bfa !important; }
+    .swagger-ui .info a { color: var(--brand) !important; }
+
+    .swagger-ui .scheme-container {
+      background: var(--surface2) !important;
+      border: 1px solid rgba(108,71,255,0.25) !important;
+      border-radius: 10px !important;
+      padding: 12px 20px !important;
+      margin-bottom: 20px !important;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.2) !important;
+    }
+
+    .swagger-ui select {
+      background: var(--surface) !important;
+      color: var(--text) !important;
+      border: 1px solid rgba(108,71,255,0.4) !important;
+      border-radius: 6px !important;
+    }
+
+    /* Tags */
+    .swagger-ui .opblock-tag {
+      border-bottom: 1px solid rgba(108,71,255,0.2) !important;
+      color: var(--text) !important;
+      font-size: 18px !important;
+      font-weight: 700 !important;
+    }
+    .swagger-ui .opblock-tag small { color: var(--muted) !important; }
+
+    /* Operation blocks */
+    .swagger-ui .opblock {
+      background: var(--surface2) !important;
+      border-radius: 10px !important;
+      border: 1px solid rgba(108,71,255,0.15) !important;
+      margin-bottom: 10px !important;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2) !important;
+      overflow: hidden !important;
+    }
+    .swagger-ui .opblock:hover {
+      border-color: rgba(108,71,255,0.4) !important;
+    }
+    .swagger-ui .opblock .opblock-summary {
+      border-bottom: 1px solid rgba(108,71,255,0.1) !important;
+    }
+    .swagger-ui .opblock .opblock-summary-description {
+      color: var(--text) !important;
+    }
+
+    /* GET */
+    .swagger-ui .opblock-get .opblock-summary { background: rgba(72, 199, 142, 0.08) !important; }
+    .swagger-ui .opblock-get { border-color: rgba(72, 199, 142, 0.3) !important; }
+    .swagger-ui .opblock-get .opblock-summary-method { background: #2e7d52 !important; }
+
+    /* POST */
+    .swagger-ui .opblock-post .opblock-summary { background: rgba(108, 71, 255, 0.08) !important; }
+    .swagger-ui .opblock-post { border-color: rgba(108, 71, 255, 0.3) !important; }
+    .swagger-ui .opblock-post .opblock-summary-method { background: var(--brand) !important; }
+
+    /* PUT */
+    .swagger-ui .opblock-put .opblock-summary { background: rgba(251, 191, 36, 0.08) !important; }
+    .swagger-ui .opblock-put { border-color: rgba(251, 191, 36, 0.3) !important; }
+    .swagger-ui .opblock-put .opblock-summary-method { background: #b45309 !important; }
+
+    /* DELETE */
+    .swagger-ui .opblock-delete .opblock-summary { background: rgba(239, 68, 68, 0.08) !important; }
+    .swagger-ui .opblock-delete { border-color: rgba(239, 68, 68, 0.3) !important; }
+    .swagger-ui .opblock-delete .opblock-summary-method { background: #b91c1c !important; }
+
+    /* Body / description */
+    .swagger-ui .opblock-body, .swagger-ui .opblock-description-wrapper {
+      background: var(--surface) !important;
+    }
+    .swagger-ui .opblock-section-header {
+      background: rgba(108,71,255,0.08) !important;
+      border-bottom: 1px solid rgba(108,71,255,0.15) !important;
+    }
+    .swagger-ui .opblock-section-header label,
+    .swagger-ui .opblock-section-header h4 { color: var(--text) !important; }
+
+    .swagger-ui table thead tr td, .swagger-ui table thead tr th {
+      color: var(--muted) !important;
+      border-bottom: 1px solid rgba(108,71,255,0.2) !important;
+    }
+    .swagger-ui .parameter__name, .swagger-ui .parameter__type { color: var(--text) !important; }
+    .swagger-ui .parameter__in { color: #a78bfa !important; }
+
+    .swagger-ui textarea, .swagger-ui input[type=text], .swagger-ui input[type=email],
+    .swagger-ui input[type=password], .swagger-ui input[type=search] {
+      background: var(--surface) !important;
+      color: var(--text) !important;
+      border: 1px solid rgba(108,71,255,0.3) !important;
+      border-radius: 6px !important;
+    }
+
+    .swagger-ui .btn.execute {
+      background: var(--brand) !important;
+      border-color: var(--brand) !important;
+      color: #fff !important;
+      border-radius: 6px !important;
+      font-weight: 600 !important;
+    }
+    .swagger-ui .btn.execute:hover { background: var(--brand-dark) !important; }
+
+    .swagger-ui .btn.authorize {
+      background: transparent !important;
+      border: 1px solid var(--brand) !important;
+      color: var(--brand) !important;
+      border-radius: 6px !important;
+      font-weight: 600 !important;
+    }
+    .swagger-ui .btn.authorize svg { fill: var(--brand) !important; }
+
+    .swagger-ui .model-box { background: var(--surface2) !important; border-radius: 8px !important; }
+    .swagger-ui .model { color: var(--text) !important; }
+    .swagger-ui section.models { border: 1px solid rgba(108,71,255,0.2) !important; border-radius: 10px !important; }
+    .swagger-ui section.models h4 { color: var(--text) !important; }
+
+    .swagger-ui .response-col_status { color: var(--text) !important; }
+    .swagger-ui .response-col_description { color: var(--muted) !important; }
+
+    .swagger-ui .microlight { background: #000000 !important; border-radius: 6px !important; }
+
+    /* Auth modal */
+    .swagger-ui .dialog-ux .modal-ux {
+      background: var(--surface2) !important;
+      border: 1px solid rgba(108,71,255,0.4) !important;
+      border-radius: 12px !important;
+    }
+    .swagger-ui .dialog-ux .modal-ux-header { background: rgba(108,71,255,0.1) !important; border-radius: 12px 12px 0 0 !important; }
+    .swagger-ui .dialog-ux .modal-ux-header h3 { color: var(--text) !important; }
+    .swagger-ui .auth-container label, .swagger-ui .auth-container p { color: var(--text) !important; }
+    .swagger-ui .auth-container code { color: #a78bfa !important; background: rgba(108,71,255,0.1) !important; padding: 2px 6px !important; border-radius: 4px !important; }
+  </style>
+</head>
+<body>
+
+<div id="top-banner">
+  <div class="logo">T</div>
+  <div class="info">
+    <h1>Trexo ERP — API Documentation</h1>
+    <p>Multi-tenant ERP REST API · OpenAPI 3.0</p>
+  </div>
+  <div class="badge">v1.0.0</div>
+</div>
+
+<div id="quick-start">
+  <span class="qs-label">Quick Start</span>
+  <div class="qs-step">
+    <div class="num">1</div>
+    <span>Click <strong>Authorize 🔒</strong></span>
+  </div>
+  <div class="qs-step">
+    <div class="num">2</div>
+    <span>Call <code>POST /api/v1/login</code> to get your token</span>
+  </div>
+  <div class="qs-step">
+    <div class="num">3</div>
+    <span>Paste token as <code>Bearer &lt;token&gt;</code> in the Authorize dialog</span>
+  </div>
+  <div class="qs-step">
+    <div class="num">4</div>
+    <span>Try any endpoint with <strong>Execute</strong></span>
+  </div>
+</div>
+
+<div id="swagger-ui"></div>
+
+<script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
+<script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-standalone-preset.js"></script>
+<script>
+  window.onload = () => {
+    // Custom plugin to filter out all tags except the ones we want to show
+    const FilterTagsPlugin = function() {
+      return {
+        statePlugins: {
+          spec: {
+            wrapSelectors: {
+              taggedOperations: (oriAction) => (state, ...args) => {
+                let taggedOps = oriAction(state, ...args);
+                if (!taggedOps) return taggedOps;
+                
+                const allowedTags = ["BusinessReports", "Purchase", "StockTransfer"];
+                // Filter the Immutable map of tags
+                return taggedOps.filter((tagObj, tag) => allowedTags.includes(tag));
+              }
+            }
+          }
+        }
+      };
+    };
+
+    const CustomSnippetPlugin = {
+      fn: {
+        requestSnippetGenerator_php: (request) => {
+          const url = request.get("url");
+          const method = request.get("method");
+          const headersMap = request.get("headers");
+          let headers = [];
+          if (headersMap && headersMap.size > 0) {
+            headersMap.forEach((val, key) => {
+              if (key === "Authorization") {
+                val = val.replace(/^Bearer\s+/i, '');
+                headers.push(`'Authorization: Bearer ${val}'`);
+              } else if (key.toLowerCase() !== "accept" && key.toLowerCase() !== "content-type") {
+                headers.push(`'${key}: ${val}'`);
+              }
+            });
+          }
+          if (!headersMap || !headersMap.has("Authorization")) {
+            headers.push(`'Authorization: Bearer {YOUR_TOKEN}'`);
+          }
+          headers.unshift(`'Accept: application/json'`);
+          headers.push(`'Content-Type: application/json'`);
+
+          let headerStr = `\n    CURLOPT_HTTPHEADER => [\n        ${headers.join(",\n        ")}\n    ],`;
+
+          let bodyStr = '';
+          const body = request.get("body");
+          if (body) {
+             let parsedBody = body;
+             if (typeof body === 'string') {
+                 try { parsedBody = JSON.parse(body); } catch(e) {}
+             }
+             
+             const toPhpArray = (obj, indent = '        ') => {
+                 if (Array.isArray(obj)) {
+                     if (obj.length === 0) return '[]';
+                     let parts = obj.map(item => toPhpArray(item, indent + '    '));
+                     return `[\n${indent}    ` + parts.join(`,\n${indent}    `) + `\n${indent}]`;
+                 } else if (obj !== null && typeof obj === 'object') {
+                     let keys = Object.keys(obj);
+                     if (keys.length === 0) return '[]';
+                     let parts = keys.map(k => `"${k}" => ` + toPhpArray(obj[k], indent + '    '));
+                     return `[\n${indent}    ` + parts.join(`,\n${indent}    `) + `\n${indent}]`;
+                 } else if (typeof obj === 'string') {
+                     return `"${obj.replace(/"/g, '\\"')}"`;
+                 } else if (obj === null) {
+                     return "null";
+                 } else {
+                     return obj;
+                 }
+             };
+             
+             if (typeof parsedBody === 'object' && parsedBody !== null) {
+                 bodyStr = `\n    CURLOPT_POSTFIELDS => json_encode(` + toPhpArray(parsedBody) + `, JSON_UNESCAPED_SLASHES),`;
+             } else {
+                 let safeBody = String(parsedBody).replace(/'/g, "\\'");
+                 bodyStr = `\n    CURLOPT_POSTFIELDS => '${safeBody}',`;
+             }
+          }
+          
+          return `<?php\n$curl = curl_init();\n\ncurl_setopt_array($curl, [\n    CURLOPT_URL => "${url}",\n    CURLOPT_RETURNTRANSFER => true,\n    CURLOPT_SSL_VERIFYPEER => false,\n    CURLOPT_CUSTOMREQUEST => "${method}",${headerStr}${bodyStr}\n]);\n\n$response = curl_exec($curl);\n$httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);\ncurl_close($curl);\n\necho "HTTP Status Code: " . $httpcode . "\\n";\necho "Response:\\n";\necho $response;\n?>`;
+        },
+        requestSnippetGenerator_python: (request) => {
+          const url = request.get("url");
+          const method = request.get("method");
+          const headersMap = request.get("headers");
+          let headers = [];
+          if (headersMap && headersMap.size > 0) {
+            headersMap.forEach((val, key) => {
+              if (key === "Authorization") {
+                val = val.replace(/^Bearer\s+/i, '');
+                val = `Bearer ${val}`;
+              }
+              if (key.toLowerCase() !== "accept" && key.toLowerCase() !== "content-type") {
+                headers.push(`    "${key}": "${val}"`);
+              }
+            });
+          }
+          if (!headersMap || !headersMap.has("Authorization")) {
+            headers.push(`    "Authorization": "Bearer {YOUR_TOKEN}"`);
+          }
+          headers.unshift(`    "Accept": "application/json"`);
+          headers.unshift(`    "Content-Type": "application/json"`);
+          
+          let headerStr = '';
+          if (headers.length > 0) {
+            headerStr = `\nheaders = {\n${headers.join(",\n")}\n}\n`;
+          }
+          let bodyStr = '';
+          const body = request.get("body");
+          let dataParam = '';
+          if (body) {
+             let bodyContent = typeof body === 'string' ? body : JSON.stringify(body);
+             bodyStr = `\npayload = """${bodyContent}"""\n`;
+             dataParam = `, data=payload`;
+          }
+          let headersParam = headers.length > 0 ? ", headers=headers, verify=False" : ", verify=False";
+          return `import requests\n\nurl = "${url}"${headerStr}${bodyStr}\nresponse = requests.request("${method}", url${headersParam}${dataParam})\nprint(response.status_code)\nprint(response.text)`;
+        },
+        requestSnippetGenerator_curl_bash: (request) => {
+          const url = request.get("url");
+          const method = request.get("method");
+          const headersMap = request.get("headers");
+          let headers = [];
+          
+          if (headersMap && headersMap.size > 0) {
+            headersMap.forEach((val, key) => {
+              if (key === "Authorization") {
+                val = val.replace(/^Bearer\s+/i, '');
+                headers.push(`--header 'Authorization: Bearer ${val}'`);
+              } else if (key.toLowerCase() !== "accept" && key.toLowerCase() !== "content-type") {
+                headers.push(`--header '${key}: ${val}'`);
+              }
+            });
+          }
+          if (!headersMap || !headersMap.has("Authorization")) {
+            headers.push(`--header 'Authorization: Bearer {YOUR_TOKEN}'`);
+          }
+          headers.unshift(`--header 'Accept: application/json'`);
+          headers.unshift(`--header 'Content-Type: application/json'`);
+
+          let bodyStr = '';
+          const body = request.get("body");
+          if (body) {
+             let bodyContent = typeof body === 'string' ? body : JSON.stringify(body);
+             let safeBody = bodyContent.replace(/'/g, "'\\''");
+             bodyStr = ` \\\n--data-raw '${safeBody}'`;
+          }
+          
+          return `curl --insecure --location --request ${method} '${url}' \\\n${headers.join(" \\\n")}${bodyStr}`;
+        },
+        requestSnippetGenerator_curl_powershell: (request) => {
+          const url = request.get("url");
+          const method = request.get("method");
+          const headersMap = request.get("headers");
+          let headers = [];
+          
+          if (headersMap && headersMap.size > 0) {
+            headersMap.forEach((val, key) => {
+              if (key === "Authorization") {
+                val = val.replace(/^Bearer\s+/i, '');
+                headers.push(`"${key}"="Bearer ${val}"`);
+              } else if (key.toLowerCase() !== "accept" && key.toLowerCase() !== "content-type") {
+                headers.push(`"${key}"="${val}"`);
+              }
+            });
+          }
+          if (!headersMap || !headersMap.has("Authorization")) {
+            headers.push(`"Authorization"="Bearer {YOUR_TOKEN}"`);
+          }
+          headers.unshift(`"Accept"="application/json"`);
+          headers.unshift(`"Content-Type"="application/json"`);
+
+          let bodyStr = '';
+          const body = request.get("body");
+          if (body) {
+             let bodyContent = typeof body === 'string' ? body : JSON.stringify(body);
+             bodyStr = ` -Body @'\n${bodyContent}\n'@`;
+          }
+          
+          return `$headers = @{\n    ${headers.join("\n    ")}\n}\nInvoke-RestMethod -Uri "${url}" -Method ${method} -Headers $headers${bodyStr} -SkipCertificateCheck`;
+        },
+        requestSnippetGenerator_curl_cmd: (request) => {
+          const url = request.get("url");
+          const method = request.get("method");
+          const headersMap = request.get("headers");
+          let headers = [];
+          
+          if (headersMap && headersMap.size > 0) {
+            headersMap.forEach((val, key) => {
+              if (key === "Authorization") {
+                val = val.replace(/^Bearer\s+/i, '');
+                headers.push(`--header "Authorization: Bearer ${val}"`);
+              } else if (key.toLowerCase() !== "accept" && key.toLowerCase() !== "content-type") {
+                headers.push(`--header "${key}: ${val}"`);
+              }
+            });
+          }
+          if (!headersMap || !headersMap.has("Authorization")) {
+            headers.push(`--header "Authorization: Bearer {YOUR_TOKEN}"`);
+          }
+          headers.unshift(`--header "Accept: application/json"`);
+          headers.unshift(`--header "Content-Type: application/json"`);
+
+          let bodyStr = '';
+          const body = request.get("body");
+          if (body) {
+             let bodyContent = typeof body === 'string' ? body : JSON.stringify(body);
+             let safeBody = bodyContent.replace(/"/g, '\\"');
+             bodyStr = ` ^\n  --data-raw "${safeBody}"`;
+          }
+          
+          return `curl --insecure --location --request ${method} "${url}" ^\n  ${headers.join(" ^\n  ")}${bodyStr}`;
+        }
+      }
+    };
+
+    SwaggerUIBundle({
+      url: '/docs/openapi.yaml',
+      dom_id: '#swagger-ui',
+      deepLinking: true,
+      presets: [
+        SwaggerUIBundle.presets.apis,
+        SwaggerUIStandalonePreset,
+      ],
+      plugins: [
+        SwaggerUIBundle.plugins.DownloadUrl,
+        CustomSnippetPlugin
+      ],
+      layout: 'StandaloneLayout',
+      docExpansion: 'list',
+      defaultModelsExpandDepth: 1,
+      tryItOutEnabled: true,
+      requestSnippetsEnabled: true,
+      requestSnippets: {
+        generators: {
+          curl_bash: { title: "cURL (bash)", syntax: "bash" },
+          php: { title: "PHP", syntax: "php" },
+          python: { title: "Python", syntax: "python" }
+        }
+      },
+      persistAuthorization: true,
+    });
+  };
+</script>
+</body>
+</html>

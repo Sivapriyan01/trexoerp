@@ -1,0 +1,3714 @@
+openapi: 3.0.3
+info:
+  title: Trexo ERP - Full API Reference
+  description: |
+    Complete API documentation for the Trexo ERP multi-tenant platform.
+    **Base URL pattern:** `http://{tenant}.localhost:8000`
+    All web routes require session cookie (`auth:tenant`). API v1 routes require Bearer token.
+  version: 2.0.0
+  contact:
+    name: Trexo ERP Support
+
+servers:
+  - url: http://{tenant}.localhost:8000
+    description: Local Tenant Dev Server
+    variables:
+      tenant:
+        default: avinash
+        description: Tenant subdomain
+
+security:
+  - BearerAuth: []
+
+tags:
+  - { name: Auth, description: Login / Logout }
+  - { name: Billing, description: Sales & Invoice management }
+  - { name: Returns, description: Return Center }
+  - { name: Delivery, description: Delivery management }
+  - { name: Customers, description: Customer master }
+  - { name: Suppliers, description: Supplier/Vendor master }
+  - { name: Products, description: Product & Inventory (includes Product Master) }
+  - { name: Inventory, description: Inventory view & history }
+  - { name: StockTransfer, description: Branch stock transfers }
+  - { name: Employees, description: Employee management & attendance }
+  - { name: Purchase, description: Purchase orders & settlement }
+  - { name: Membership, description: Membership plans & assignment }
+  - { name: Instalments, description: Instalment tracking }
+  - { name: WhatsApp, description: WhatsApp messaging }
+  - { name: Mail, description: Mail accounts & broadcast }
+  - { name: Accounting, description: Chart of accounts & journal entries }
+  - { name: DailyExpense, description: Daily expenses & petty cash }
+  - { name: CRM, description: CRM leads & pipeline }
+  - { name: Services, description: Service/Warranty claims }
+  - { name: Reminders, description: Anniversary & birthday reminders }
+  - { name: Manufacturing, description: Production & manufacturing jobs }
+  - { name: Calendar, description: Calendar events }
+  - { name: DueInvoices, description: Overdue & unpaid invoice tracking }
+  - { name: Users, description: User management & permissions }
+  - { name: Tally, description: Tally ERP integration }
+  - { name: BusinessReports, description: Advanced analytics & reports }
+  - { name: Setup, description: Tenant configuration & backup }
+  - { name: GST, description: GST validation & reports }
+  - { name: Production, description: Production job management }
+  - { name: API-v1, description: Sanctum token-authenticated REST API }
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message: { type: string }
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+
+    PaginatedMeta:
+      type: object
+      properties:
+        current_page: { type: integer }
+        last_page: { type: integer }
+        per_page: { type: integer }
+        total: { type: integer }
+
+    Customer:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        phone: { type: string }
+        email: { type: string, nullable: true }
+        address: { type: string, nullable: true }
+        gstin: { type: string, nullable: true }
+        balance: { type: number, format: float }
+        created_at: { type: string, format: date-time }
+
+    Supplier:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        gstin: { type: string, nullable: true }
+        address: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+
+    Product:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        sku: { type: string, nullable: true }
+        barcode: { type: string, nullable: true }
+        price: { type: number, format: float }
+        cost: { type: number, format: float, nullable: true }
+        stock: { type: integer }
+        unit: { type: string }
+        category: { type: string, nullable: true }
+        tax_rate: { type: number, format: float }
+        created_at: { type: string, format: date-time }
+
+    BillItem:
+      type: object
+      properties:
+        product_id: { type: integer }
+        name: { type: string }
+        qty: { type: number }
+        price: { type: number, format: float }
+        discount: { type: number, format: float }
+        tax: { type: number, format: float }
+        total: { type: number, format: float }
+
+    Bill:
+      type: object
+      properties:
+        id: { type: integer }
+        bill_no: { type: string }
+        customer_id: { type: integer, nullable: true }
+        customer_name: { type: string }
+        subtotal: { type: number, format: float }
+        discount: { type: number, format: float }
+        tax: { type: number, format: float }
+        total: { type: number, format: float }
+        paid: { type: number, format: float }
+        balance: { type: number, format: float }
+        payment_mode: { type: string }
+        status: { type: string, enum: [draft, completed, returned, cancelled] }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/BillItem' }
+        created_at: { type: string, format: date-time }
+
+    Purchase:
+      type: object
+      properties:
+        id: { type: integer }
+        invoice_ref: { type: string, nullable: true }
+        supplier_id: { type: integer, nullable: true }
+        supplier_name: { type: string }
+        total: { type: number, format: float }
+        paid: { type: number, format: float }
+        balance: { type: number, format: float }
+        status: { type: string, enum: [pending, partial, completed] }
+        purchase_date: { type: string, format: date }
+        created_at: { type: string, format: date-time }
+
+    ReturnRecord:
+      type: object
+      properties:
+        id: { type: integer }
+        bill_id: { type: integer }
+        customer_id: { type: integer, nullable: true }
+        reason: { type: string }
+        status: { type: string, enum: [pending, approved, rejected, completed] }
+        total_refund: { type: number, format: float }
+        created_at: { type: string, format: date-time }
+
+    Employee:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        designation: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        salary: { type: number, format: float, nullable: true }
+        joined_at: { type: string, format: date, nullable: true }
+
+    Lead:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        source: { type: string, nullable: true }
+        status: { type: string }
+        notes: { type: string, nullable: true }
+        assigned_to: { type: integer, nullable: true }
+        created_at: { type: string, format: date-time }
+
+paths:
+  # ─────────────────────────────────────────
+  # AUTH
+  # ─────────────────────────────────────────
+  /login:
+    get:
+      tags: [Auth]
+      summary: Show login form
+      operationId: showLoginForm
+      security: []
+      responses:
+        '200':
+          description: Login page HTML
+
+    post:
+      tags: [Auth]
+      summary: Tenant login
+      operationId: tenantLogin
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email, example: admin@example.com }
+                password: { type: string, example: secret }
+      responses:
+        '302':
+          description: Redirect to dashboard on success
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /logout:
+    post:
+      tags: [Auth]
+      summary: Tenant logout
+      operationId: tenantLogout
+      responses:
+        '302':
+          description: Redirect to login page
+
+  # ─────────────────────────────────────────
+  # BILLING
+  # ─────────────────────────────────────────
+  /billing:
+    get:
+      tags: [Billing]
+      summary: Billing dashboard / list
+      operationId: billingIndex
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: search, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Billing list page }
+
+  /billing/quick:
+    get:
+      tags: [Billing]
+      summary: Quick (POS) billing screen
+      operationId: billingQuick
+      responses:
+        '200': { description: Quick billing HTML }
+
+  /billing/outward:
+    get:
+      tags: [Billing]
+      summary: Outward sales list
+      operationId: billingOutward
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Outward bill list }
+
+  /billing/outward/export:
+    get:
+      tags: [Billing]
+      summary: Export outward bills to Excel
+      operationId: billingExportOutward
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: Excel file download
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema: { type: string, format: binary }
+
+  /billing/customers/search:
+    get:
+      tags: [Billing]
+      summary: Search customers (autocomplete)
+      operationId: billingSearchCustomer
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Matching customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Customer' }
+
+  /billing/store:
+    post:
+      tags: [Billing]
+      summary: Create a new bill/invoice
+      operationId: billingStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items, payment_mode]
+              properties:
+                customer_id: { type: integer, nullable: true }
+                customer_name: { type: string }
+                items:
+                  type: array
+                  items: { $ref: '#/components/schemas/BillItem' }
+                discount: { type: number, format: float, default: 0 }
+                payment_mode: { type: string, example: Cash }
+                paid: { type: number, format: float }
+                notes: { type: string, nullable: true }
+      responses:
+        '201':
+          description: Bill created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Bill' }
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /billing/print/{bill}:
+    get:
+      tags: [Billing]
+      summary: Print-ready invoice view
+      operationId: billingPrint
+      parameters:
+        - { name: bill, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Printable invoice HTML }
+
+  /billing/email/{bill}:
+    post:
+      tags: [Billing]
+      summary: Email invoice to customer
+      operationId: billingEmail
+      parameters:
+        - { name: bill, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Email sent confirmation }
+
+  /billing/whatsapp/{bill}:
+    post:
+      tags: [Billing]
+      summary: Send invoice via WhatsApp
+      operationId: billingWhatsapp
+      parameters:
+        - { name: bill, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: WhatsApp message sent }
+
+  /billing/products/search:
+    get:
+      tags: [Billing]
+      summary: Search products for billing (AJAX)
+      operationId: billingSearchProducts
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Matching products
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Product' }
+
+  /billing/products/scan:
+    get:
+      tags: [Billing]
+      summary: Scan barcode to find product
+      operationId: billingScanBarcode
+      parameters:
+        - { name: barcode, in: query, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Product found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        '404': { description: Product not found }
+
+  /billing/customer/lookup:
+    get:
+      tags: [Billing]
+      summary: Lookup customer by phone
+      operationId: billingLookupCustomer
+      parameters:
+        - { name: phone, in: query, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Customer details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Customer' }
+
+  /billing/generate:
+    post:
+      tags: [Billing]
+      summary: Generate invoice (preview before save)
+      operationId: billingGenerate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items: { type: array, items: { $ref: '#/components/schemas/BillItem' } }
+                discount: { type: number }
+                tax_mode: { type: string }
+      responses:
+        '200':
+          description: Invoice preview totals
+          content:
+            application/json:
+              schema: { type: object }
+
+  /billing/invoice/{bill}:
+    get:
+      tags: [Billing]
+      summary: View invoice details (AJAX)
+      operationId: billingViewInvoice
+      parameters:
+        - { name: bill, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200':
+          description: Invoice data
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Bill' }
+
+  /billing/previous:
+    get:
+      tags: [Billing]
+      summary: List previous bills for customer (AJAX)
+      operationId: billingPrevious
+      parameters:
+        - { name: customer_id, in: query, schema: { type: integer } }
+      responses:
+        '200':
+          description: Previous bills list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Bill' }
+
+  /billing/return:
+    post:
+      tags: [Billing]
+      summary: Process invoice return (quick)
+      operationId: billingReturn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bill_id]
+              properties:
+                bill_id: { type: integer }
+                reason: { type: string }
+                items: { type: array, items: { type: object } }
+      responses:
+        '200': { description: Return processed }
+
+  /billing/pre-orders:
+    get:
+      tags: [Billing]
+      summary: List pre-orders
+      operationId: billingPreOrders
+      responses:
+        '200': { description: Pre-orders list }
+
+  /billing/pre-orders/{bill}/status:
+    post:
+      tags: [Billing]
+      summary: Update pre-order status
+      operationId: billingPreOrderStatus
+      parameters:
+        - { name: bill, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string, enum: [pending, confirmed, dispatched, delivered, cancelled] }
+      responses:
+        '200': { description: Status updated }
+
+  /billing/pre-orders/{bill}/delivery-date:
+    post:
+      tags: [Billing]
+      summary: Update expected delivery date
+      operationId: billingPreOrderDeliveryDate
+      parameters:
+        - { name: bill, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                delivery_date: { type: string, format: date }
+      responses:
+        '200': { description: Delivery date updated }
+
+  /billing/pre-orders/{bill}/convert:
+    post:
+      tags: [Billing]
+      summary: Convert pre-order to sales order
+      operationId: billingConvertPreOrder
+      parameters:
+        - { name: bill, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Converted to sales order }
+
+  /billing/gst/gstr1:
+    get:
+      tags: [GST]
+      summary: GSTR-1 report
+      operationId: gstr1
+      parameters:
+        - { name: month, in: query, schema: { type: integer } }
+        - { name: year, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: GSTR-1 data }
+
+  /billing/gst/gstr3b:
+    get:
+      tags: [GST]
+      summary: GSTR-3B summary
+      operationId: gstr3b
+      parameters:
+        - { name: month, in: query, schema: { type: integer } }
+        - { name: year, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: GSTR-3B data }
+
+  /billing/gst/download-json:
+    get:
+      tags: [GST]
+      summary: Download GSTR JSON for filing
+      operationId: gstDownloadJson
+      responses:
+        '200':
+          description: JSON file
+          content:
+            application/json:
+              schema: { type: object }
+
+  # ─────────────────────────────────────────
+  # RETURN CENTER
+  # ─────────────────────────────────────────
+  /api/v1/returns:
+    get:
+      tags: [Returns]
+      summary: List all return records
+      operationId: returnsIndex
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: status, in: query, schema: { type: string } }
+      responses:
+        '200': { description: Returns list }
+
+    post:
+      tags: [Returns]
+      summary: Create a return request
+      operationId: returnsStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bill_id, reason, items]
+              properties:
+                bill_id: { type: integer }
+                reason: { type: string }
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      product_id: { type: integer }
+                      qty: { type: number }
+
+      responses:
+        '201':
+          description: Return created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReturnRecord' }
+
+  /api/v1/returns/{id}:
+    get:
+      tags: [Returns]
+      summary: View a return record
+      operationId: returnsShow
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Return details }
+
+  # ─────────────────────────────────────────
+  # DELIVERY
+  # ─────────────────────────────────────────
+  /api/v1/deliveries:
+    get:
+      tags: [Delivery]
+      summary: List deliveries
+      operationId: deliveryIndex
+      parameters:
+        - { name: status, in: query, schema: { type: string } }
+        - { name: date, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Delivery list }
+
+  /api/v1/deliveries/{bill}/status:
+    post:
+      tags: [Delivery]
+      summary: Update delivery status for a bill
+      operationId: deliveryUpdateStatus
+      parameters:
+        - { name: bill, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string, enum: [pending, out_for_delivery, delivered, failed] }
+                notes: { type: string, nullable: true }
+      responses:
+        '200': { description: Delivery status updated }
+
+  # ─────────────────────────────────────────
+  # CUSTOMERS
+  # ─────────────────────────────────────────
+  /api/v1/customers:
+    get:
+      tags: [Customers]
+      summary: List all customers
+      operationId: customersIndex
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: search, in: query, schema: { type: string } }
+      responses:
+        '200': { description: Customer list }
+
+    post:
+      tags: [Customers]
+      summary: Create a customer
+      operationId: customersStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                phone: { type: string }
+                email: { type: string, format: email, nullable: true }
+                address: { type: string, nullable: true }
+                gstin: { type: string, nullable: true }
+      responses:
+        '201':
+          description: Customer created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Customer' }
+
+  /api/v1/customers/{id}:
+    get:
+      tags: [Customers]
+      summary: Show customer details
+      operationId: customersShow
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Customer detail }
+
+    put:
+      tags: [Customers]
+      summary: Update customer
+      operationId: customersUpdate
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Customer' }
+      responses:
+        '200': { description: Customer updated }
+
+    delete:
+      tags: [Customers]
+      summary: Delete customer
+      operationId: customersDestroy
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Customer deleted }
+
+  /api/v1/customers/{id}/bills:
+    get:
+      tags: [Customers]
+      summary: Get customer bill history
+      operationId: customersBills
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Customer bills }
+
+  /api/v1/customers/{id}/ledger:
+    get:
+      tags: [Customers]
+      summary: Get customer ledger
+      operationId: customersLedger
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Customer ledger }
+
+  # ─────────────────────────────────────────
+  # VENDORS / SUPPLIERS
+  # ─────────────────────────────────────────
+  /api/v1/vendors:
+    get:
+      tags: [Suppliers]
+      summary: List all vendors/suppliers
+      operationId: suppliersIndex
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: search, in: query, schema: { type: string } }
+      responses:
+        '200': { description: Vendor list }
+
+    post:
+      tags: [Suppliers]
+      summary: Create a vendor/supplier
+      operationId: suppliersStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                phone: { type: string, nullable: true }
+                email: { type: string, format: email, nullable: true }
+                gstin: { type: string, nullable: true }
+                address: { type: string, nullable: true }
+      responses:
+        '201':
+          description: Vendor created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Supplier' }
+
+  /api/v1/vendors/{id}:
+    get:
+      tags: [Suppliers]
+      summary: Show vendor details
+      operationId: suppliersShow
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Vendor detail }
+
+    put:
+      tags: [Suppliers]
+      summary: Update vendor
+      operationId: suppliersUpdate
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Supplier' }
+      responses:
+        '200': { description: Vendor updated }
+
+    delete:
+      tags: [Suppliers]
+      summary: Delete vendor
+      operationId: suppliersDestroy
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Vendor deleted }
+
+  /api/v1/vendors/{id}/purchases:
+    get:
+      tags: [Suppliers]
+      summary: Get vendor purchase history
+      operationId: suppliersPurchases
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Vendor purchase history }
+  # ─────────────────────────────────────────
+  # PRODUCTS
+  # ─────────────────────────────────────────
+  /api/v1/products:
+    get:
+      tags: [Products]
+      summary: List all products
+      operationId: productsIndex
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: search, in: query, schema: { type: string } }
+        - { name: category, in: query, schema: { type: string } }
+      responses:
+        '200': { description: Product list }
+
+    post:
+      tags: [Products]
+      summary: Create a product
+      operationId: productsStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, price]
+              properties:
+                name: { type: string }
+                sku: { type: string, nullable: true }
+                barcode: { type: string, nullable: true }
+                price: { type: number, format: float }
+                cost: { type: number, format: float, nullable: true }
+                stock: { type: integer, default: 0 }
+                unit: { type: string, default: pcs }
+                category: { type: string, nullable: true }
+                tax_rate: { type: number, format: float, default: 0 }
+      responses:
+        '201':
+          description: Product created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+
+  /api/v1/products/import:
+    post:
+      tags: [Products]
+      summary: Import products from Excel
+      operationId: productsImport
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Excel (.xlsx) file
+      responses:
+        '200':
+          description: Import result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imported: { type: integer }
+                  failed: { type: integer }
+                  errors: { type: array, items: { type: string } }
+
+  /api/v1/products/{id}:
+    get:
+      tags: [Products]
+      summary: Show product details
+      operationId: productsShow
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Product detail }
+
+    put:
+      tags: [Products]
+      summary: Update product
+      operationId: productsUpdate
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Product' }
+      responses:
+        '200': { description: Product updated }
+
+    delete:
+      tags: [Products]
+      summary: Delete product
+      operationId: productsDestroy
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Product deleted }
+
+  # ─────────────────────────────────────────
+  # INVENTORY
+  # ─────────────────────────────────────────
+  /api/v1/inventory:
+    get:
+      tags: [Inventory]
+      summary: Current inventory stock levels
+      operationId: inventoryIndex
+      parameters:
+        - { name: q, in: query, schema: { type: string }, description: Search by product name or barcode }
+        - { name: low_stock, in: query, schema: { type: boolean }, description: Filter low stock items only }
+        - { name: category, in: query, schema: { type: string }, description: Filter by product type/category }
+        - { name: per_page, in: query, schema: { type: integer, default: 50 } }
+        - { name: page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Inventory list }
+
+  /api/v1/inventory/summary:
+    get:
+      tags: [Inventory]
+      summary: Inventory summary statistics
+      operationId: inventorySummary
+      responses:
+        '200':
+          description: Summary statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      total_products: { type: integer }
+                      low_stock: { type: integer }
+                      out_of_stock: { type: integer }
+                      total_value: { type: number, format: float }
+
+  /api/v1/inventory/history:
+    get:
+      tags: [Inventory]
+      summary: Stock movement history
+      operationId: inventoryHistory
+      parameters:
+        - { name: product_id, in: query, schema: { type: integer }, description: Filter by product ID }
+        - { name: type, in: query, schema: { type: string, enum: [in, out, adjustment] }, description: Movement type }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+        - { name: per_page, in: query, schema: { type: integer, default: 50 } }
+        - { name: page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Stock movement history }
+
+  /api/v1/inventory/low-stock:
+    get:
+      tags: [Inventory]
+      summary: List low stock products
+      operationId: inventoryLowStock
+      parameters:
+        - { name: per_page, in: query, schema: { type: integer, default: 50 } }
+        - { name: page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Low stock products list }
+
+  /api/v1/inventory/categories:
+    get:
+      tags: [Inventory]
+      summary: List distinct product categories
+      operationId: inventoryCategories
+      responses:
+        '200':
+          description: Category list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { type: array, items: { type: string } }
+
+  /api/v1/inventory/valuation:
+    get:
+      tags: [Inventory]
+      summary: Inventory valuation report
+      operationId: inventoryValuation
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+      responses:
+        '200':
+          description: Valuation data per product
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        product_name: { type: string }
+                        stock: { type: integer }
+                        dealer_price: { type: number }
+                        total_value: { type: number }
+
+  /api/v1/inventory/bulk-adjust:
+    post:
+      tags: [Inventory]
+      summary: Bulk adjust stock for multiple products
+      operationId: inventoryBulkAdjust
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    required: [id, stock]
+                    properties:
+                      id: { type: integer, description: Product (category) ID }
+                      stock: { type: integer, description: New stock quantity }
+      responses:
+        '200':
+          description: Bulk stock adjusted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+
+  /api/v1/inventory/{id}:
+    get:
+      tags: [Inventory]
+      summary: Get product inventory details with recent stock logs
+      operationId: inventoryShow
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Product inventory detail with recent logs }
+        '404': { description: Product not found }
+
+  /api/v1/inventory/{id}/adjust:
+    put:
+      tags: [Inventory]
+      summary: Adjust stock for a single product
+      operationId: inventoryAdjust
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [qty, type]
+              properties:
+                qty: { type: number, description: Quantity to add/remove/set }
+                type: { type: string, enum: [in, out, adjustment], description: "'in' adds, 'out' removes, 'adjustment' sets absolute stock" }
+                reason: { type: string, nullable: true, description: Reason for the adjustment }
+      responses:
+        '200':
+          description: Stock adjusted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { type: object }
+                  message: { type: string }
+        '404': { description: Product not found }
+
+  # ─────────────────────────────────────────
+  # STOCK TRANSFER
+  # ─────────────────────────────────────────
+  /api/v1/stock-transfer:
+    get:
+      tags: [StockTransfer]
+      summary: Stock transfer dashboard
+      operationId: stockTransferIndex
+      responses:
+        '200': { description: Stock transfer page }
+
+    post:
+      tags: [StockTransfer]
+      summary: Create a stock transfer
+      operationId: stockTransferStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [from_branch, to_branch, items]
+              properties:
+                from_branch: { type: integer }
+                to_branch: { type: integer }
+                notes: { type: string, nullable: true }
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      product_id: { type: integer }
+                      qty: { type: number }
+      responses:
+        '201': { description: Transfer created }
+
+  /api/v1/stock-transfer/list:
+    get:
+      tags: [StockTransfer]
+      summary: List all stock transfers
+      operationId: stockTransferList
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Transfer records }
+
+  /api/v1/stock-transfer/report:
+    get:
+      tags: [StockTransfer]
+      summary: Stock transfer report
+      operationId: stockTransferReport
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Transfer report }
+
+  /api/v1/stock-transfer/{id}:
+    get:
+      tags: [StockTransfer]
+      summary: Show a single stock transfer
+      operationId: stockTransferShow
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Stock transfer detail }
+        '404': { description: Not found }
+
+  # ─────────────────────────────────────────
+  # EMPLOYEES
+  # ─────────────────────────────────────────
+  /api/v1/employees:
+    get:
+      tags: [Employees]
+      summary: List all employees
+      operationId: employeesIndex
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: search, in: query, schema: { type: string } }
+      responses:
+        '200': { description: Employee list }
+
+    post:
+      tags: [Employees]
+      summary: Create an employee
+      operationId: employeesStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                designation: { type: string, nullable: true }
+                phone: { type: string, nullable: true }
+                email: { type: string, format: email, nullable: true }
+                salary: { type: number, format: float, nullable: true }
+                joined_at: { type: string, format: date, nullable: true }
+      responses:
+        '201':
+          description: Employee created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Employee' }
+
+  /api/v1/employees/{id}:
+    get:
+      tags: [Employees]
+      summary: Show employee
+      operationId: employeesShow
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Employee detail }
+
+    put:
+      tags: [Employees]
+      summary: Update employee
+      operationId: employeesUpdate
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Employee' }
+      responses:
+        '200': { description: Employee updated }
+
+    delete:
+      tags: [Employees]
+      summary: Delete employee
+      operationId: employeesDestroy
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Employee deleted }
+
+  /api/v1/employees/attendance:
+    get:
+      tags: [Employees]
+      summary: View attendance records (under employees prefix)
+      operationId: employeesAttendanceIndex
+      parameters:
+        - { name: date, in: query, schema: { type: string, format: date } }
+        - { name: employee_id, in: query, schema: { type: integer } }
+        - { name: month, in: query, schema: { type: integer } }
+        - { name: year, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Attendance records }
+
+    post:
+      tags: [Employees]
+      summary: Record attendance (under employees prefix)
+      operationId: employeesAttendanceStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [date, records]
+              properties:
+                date: { type: string, format: date }
+                records:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      employee_id: { type: integer }
+                      status: { type: string, enum: [present, absent, half_day, leave] }
+                      notes: { type: string, nullable: true }
+      responses:
+        '200': { description: Attendance saved }
+
+  # ─────────────────────────────────────────
+  # ATTENDANCE (also accessible via /api/v1/employees/attendance)
+  # ─────────────────────────────────────────
+  /api/v1/attendance:
+    get:
+      tags: [Employees]
+      summary: View attendance records
+      operationId: attendanceIndex
+      parameters:
+        - { name: date, in: query, schema: { type: string, format: date } }
+        - { name: employee_id, in: query, schema: { type: integer } }
+        - { name: month, in: query, schema: { type: integer } }
+        - { name: year, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Attendance records }
+
+    post:
+      tags: [Employees]
+      summary: Record attendance
+      operationId: attendanceStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [date, records]
+              properties:
+                date: { type: string, format: date }
+                records:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      employee_id: { type: integer }
+                      status: { type: string, enum: [present, absent, half_day, leave] }
+                      notes: { type: string, nullable: true }
+      responses:
+        '200': { description: Attendance saved }
+
+  # ─────────────────────────────────────────
+  # PURCHASE
+  # ─────────────────────────────────────────
+  /api/v1/purchase:
+    get:
+      tags: [Purchase]
+      summary: List purchase orders
+      operationId: purchaseIndex
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: supplier_id, in: query, schema: { type: integer } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Purchase list }
+
+  /api/v1/purchase/create:
+    get:
+      tags: [Purchase]
+      summary: Show purchase creation form
+      operationId: purchaseCreate
+      responses:
+        '200': { description: Purchase form }
+
+  /api/v1/purchase/store:
+    post:
+      tags: [Purchase]
+      summary: Create a purchase order
+      operationId: purchaseStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                supplier_id: { type: integer, nullable: true }
+                invoice_ref: { type: string, nullable: true }
+                purchase_date: { type: string, format: date }
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      product_id: { type: integer }
+                      qty: { type: number }
+                      cost: { type: number, format: float }
+                paid: { type: number, format: float, default: 0 }
+                notes: { type: string, nullable: true }
+      responses:
+        '201':
+          description: Purchase created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Purchase' }
+
+  /api/v1/purchase/parse-upload:
+    post:
+      tags: [Purchase]
+      summary: Parse uploaded purchase file (Excel/XML)
+      operationId: purchaseParseUpload
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        '200':
+          description: Parsed purchase data preview
+          content:
+            application/json:
+              schema: { type: object }
+
+  /api/v1/purchase/{id}:
+    get:
+      tags: [Purchase]
+      summary: Show purchase order
+      operationId: purchaseShow
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Purchase detail }
+
+    put:
+      tags: [Purchase]
+      summary: Update purchase order
+      operationId: purchaseUpdate
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Purchase' }
+      responses:
+        '200': { description: Purchase updated }
+
+    delete:
+      tags: [Purchase]
+      summary: Delete purchase order
+      operationId: purchaseDestroy
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Purchase deleted }
+
+  /api/v1/purchase/{id}/print:
+    get:
+      tags: [Purchase]
+      summary: Print purchase order
+      operationId: purchasePrint
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Printable PO }
+
+  /api/v1/purchase/{id}/edit:
+    get:
+      tags: [Purchase]
+      summary: Edit purchase form
+      operationId: purchaseEdit
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Edit form }
+
+  /api/v1/purchase-settlement:
+    get:
+      tags: [Purchase]
+      summary: Purchase settlement / dues list
+      operationId: purchaseSettlement
+      parameters:
+        - { name: supplier_id, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Settlement records }
+
+    post:
+      tags: [Purchase]
+      summary: Record a payment / settlement
+      operationId: purchaseStoreSettlement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [purchase_id, amount]
+              properties:
+                purchase_id: { type: integer }
+                amount: { type: number, format: float }
+                payment_mode: { type: string, example: Cash }
+                notes: { type: string, nullable: true }
+      responses:
+        '200': { description: Settlement recorded }
+
+  /api/v1/purchase-settlement/export:
+    get:
+      tags: [Purchase]
+      summary: Export settlement data to Excel
+      operationId: purchaseExportSettlement
+      responses:
+        '200':
+          description: Excel download
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema: { type: string, format: binary }
+
+  /api/v1/purchase-completed:
+    get:
+      tags: [Purchase]
+      summary: Completed purchases list
+      operationId: purchaseCompleted
+      responses:
+        '200': { description: Completed purchases }
+
+  # ─────────────────────────────────────────
+  # MEMBERSHIP
+  # ─────────────────────────────────────────
+  /api/v1/membership:
+    get:
+      tags: [Membership]
+      summary: List customer memberships
+      operationId: membershipIndex
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Memberships list }
+
+  /api/v1/membership/plans:
+    get:
+      tags: [Membership]
+      summary: List membership plans
+      operationId: membershipPlans
+      responses:
+        '200': { description: Plans list }
+
+    post:
+      tags: [Membership]
+      summary: Create a membership plan
+      operationId: membershipStorePlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, price, duration_days]
+              properties:
+                name: { type: string }
+                price: { type: number, format: float }
+                duration_days: { type: integer }
+                benefits: { type: string, nullable: true }
+                discount_percent: { type: number, format: float, default: 0 }
+      responses:
+        '201': { description: Plan created }
+
+  /api/v1/membership/plans/{plan}:
+    put:
+      tags: [Membership]
+      summary: Update membership plan
+      operationId: membershipUpdatePlan
+      parameters:
+        - { name: plan, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                price: { type: number, format: float }
+                duration_days: { type: integer }
+      responses:
+        '200': { description: Plan updated }
+
+    delete:
+      tags: [Membership]
+      summary: Delete membership plan
+      operationId: membershipDeletePlan
+      parameters:
+        - { name: plan, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Plan deleted }
+
+  /api/v1/membership/assign:
+    post:
+      tags: [Membership]
+      summary: Assign membership plan to customer
+      operationId: membershipAssign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [customer_id, plan_id]
+              properties:
+                customer_id: { type: integer }
+                plan_id: { type: integer }
+                start_date: { type: string, format: date }
+      responses:
+        '201': { description: Membership assigned }
+
+  /api/v1/membership/{membership}:
+    put:
+      tags: [Membership]
+      summary: Update a customer membership
+      operationId: membershipUpdate
+      parameters:
+        - { name: membership, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string, enum: [active, expired, cancelled] }
+      responses:
+        '200': { description: Membership updated }
+
+  # ─────────────────────────────────────────
+  # INSTALMENTS
+  # ─────────────────────────────────────────
+  /api/v1/instalments:
+    get:
+      tags: [Instalments]
+      summary: List instalment records
+      operationId: instalmentsIndex
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: status, in: query, schema: { type: string, enum: [pending, partial, paid] } }
+      responses:
+        '200': { description: Instalments list }
+
+  /api/v1/instalments/pay:
+    post:
+      tags: [Instalments]
+      summary: Record an instalment payment
+      operationId: instalmentsPay
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [instalment_id, amount]
+              properties:
+                instalment_id: { type: integer }
+                amount: { type: number, format: float }
+                payment_mode: { type: string, example: Cash }
+      responses:
+        '200': { description: Payment recorded }
+
+  /api/v1/instalments/{instalment}:
+    get:
+      tags: [Instalments]
+      summary: Show instalment detail
+      operationId: instalmentsShow
+      parameters:
+        - { name: instalment, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Instalment detail }
+
+  /api/v1/instalments/due-today:
+    get:
+      tags: [Instalments]
+      summary: Get instalments due today
+      operationId: instalmentsDueToday
+      responses:
+        '200':
+          description: Instalments due today
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { type: array, items: { type: object } }
+
+  # ─────────────────────────────────────────
+  # WHATSAPP
+  # ─────────────────────────────────────────
+  /api/v1/whatsapp:
+    get:
+      tags: [WhatsApp]
+      summary: WhatsApp messaging dashboard
+      operationId: whatsappIndex
+      responses:
+        '200': { description: WhatsApp page }
+
+  /api/v1/whatsapp/send:
+    post:
+      tags: [WhatsApp]
+      summary: Send a WhatsApp message
+      operationId: whatsappSend
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, message]
+              properties:
+                phone: { type: string, example: '919876543210' }
+                message: { type: string }
+                template: { type: string, nullable: true }
+      responses:
+        '200': { description: Message sent }
+
+  /api/v1/whatsapp/bulk:
+    post:
+      tags: [WhatsApp]
+      summary: Send bulk WhatsApp messages
+      operationId: whatsappBulk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [recipients, message]
+              properties:
+                recipients:
+                  type: array
+                  items: { type: string }
+                message: { type: string }
+                template: { type: string, nullable: true }
+      responses:
+        '200':
+          description: Bulk send result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sent: { type: integer }
+                  failed: { type: integer }
+
+  /api/v1/whatsapp/send-invoice:
+    post:
+      tags: [WhatsApp]
+      summary: Send a bill/invoice via WhatsApp
+      operationId: whatsappSendInvoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bill_id]
+              properties:
+                bill_id: { type: integer }
+                phone: { type: string, nullable: true, description: Override phone number }
+      responses:
+        '200': { description: Invoice sent via WhatsApp }
+
+  /api/v1/whatsapp/templates:
+    get:
+      tags: [WhatsApp]
+      summary: List available WhatsApp message templates
+      operationId: whatsappTemplates
+      responses:
+        '200':
+          description: Template list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { type: array, items: { type: object } }
+
+  # ─────────────────────────────────────────
+  # ACCOUNTING
+  # ─────────────────────────────────────────
+  /api/v1/accounting:
+    get:
+      tags: [Accounting]
+      summary: Accounting dashboard
+      operationId: accountingIndex
+      responses:
+        '200': { description: Accounting home }
+
+  /api/v1/accounting/accounts:
+    get:
+      tags: [Accounting]
+      summary: Chart of accounts
+      operationId: accountingAccounts
+      parameters:
+        - { name: type, in: query, schema: { type: string, enum: [asset, liability, income, expense, equity] } }
+      responses:
+        '200': { description: Accounts list }
+
+    post:
+      tags: [Accounting]
+      summary: Create an account
+      operationId: accountingStoreAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, type]
+              properties:
+                name: { type: string }
+                type: { type: string, enum: [asset, liability, income, expense, equity] }
+                parent_id: { type: integer, nullable: true }
+                description: { type: string, nullable: true }
+      responses:
+        '201': { description: Account created }
+
+  /api/v1/accounting/accounts/{id}:
+    put:
+      tags: [Accounting]
+      summary: Update an account
+      operationId: accountingUpdateAccount
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                description: { type: string, nullable: true }
+      responses:
+        '200': { description: Account updated }
+
+    delete:
+      tags: [Accounting]
+      summary: Delete an account
+      operationId: accountingDestroyAccount
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Account deleted }
+        '422': { description: Cannot delete account with transactions }
+
+  /api/v1/accounting/journal-entries:
+    get:
+      tags: [Accounting]
+      summary: List journal entries
+      operationId: accountingJournalEntries
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+        - { name: page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Journal entries }
+
+    post:
+      tags: [Accounting]
+      summary: Create a journal entry
+      operationId: accountingStoreJournalEntry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [date, description, lines]
+              properties:
+                date: { type: string, format: date }
+                description: { type: string }
+                reference: { type: string, nullable: true }
+                lines:
+                  type: array
+                  minItems: 2
+                  items:
+                    type: object
+                    properties:
+                      account_id: { type: integer }
+                      debit: { type: number, format: float, default: 0 }
+                      credit: { type: number, format: float, default: 0 }
+      responses:
+        '201': { description: Journal entry created }
+
+  /api/v1/accounting/journal-entries/{id}:
+    get:
+      tags: [Accounting]
+      summary: Show a single journal entry
+      operationId: accountingShowJournalEntry
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Journal entry detail }
+        '404': { description: Not found }
+
+  /api/v1/accounting/general-ledger:
+    get:
+      tags: [Accounting]
+      summary: General ledger view
+      operationId: accountingGeneralLedger
+      parameters:
+        - { name: account_id, in: query, schema: { type: integer } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Ledger entries }
+
+  /api/v1/accounting/trial-balance:
+    get:
+      tags: [Accounting]
+      summary: Trial balance report
+      operationId: accountingTrialBalance
+      parameters:
+        - { name: date, in: query, schema: { type: string, format: date }, description: As-of date for trial balance }
+      responses:
+        '200':
+          description: Trial balance data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { type: array, items: { type: object } }
+
+  # ─────────────────────────────────────────
+  # DAILY EXPENSE
+  # ─────────────────────────────────────────
+  /api/v1/daily-expense:
+    get:
+      tags: [DailyExpense]
+      summary: Daily expenses list
+      operationId: dailyExpenseIndex
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Expense list }
+
+  /api/v1/daily-expense/store:
+    post:
+      tags: [DailyExpense]
+      summary: Record a daily expense
+      operationId: dailyExpenseStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [description_id, amount, date]
+              properties:
+                description_id: { type: integer }
+                amount: { type: number, format: float }
+                date: { type: string, format: date }
+                notes: { type: string, nullable: true }
+                payment_mode: { type: string, example: Cash }
+      responses:
+        '201': { description: Expense recorded }
+
+  /api/v1/daily-expense/petty-cash:
+    post:
+      tags: [DailyExpense]
+      summary: Add petty cash entry
+      operationId: dailyExpensePettyCash
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount, type]
+              properties:
+                amount: { type: number, format: float }
+                type: { type: string, enum: [credit, debit] }
+                notes: { type: string, nullable: true }
+      responses:
+        '201': { description: Petty cash entry added }
+
+  /api/v1/daily-expense/{id}:
+    delete:
+      tags: [DailyExpense]
+      summary: Delete expense record
+      operationId: dailyExpenseDestroy
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Expense deleted }
+
+  /api/v1/daily-expense/export:
+    get:
+      tags: [DailyExpense]
+      summary: Export expenses to Excel
+      operationId: dailyExpenseExport
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: Excel download
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema: { type: string, format: binary }
+
+  /api/v1/daily-expense/descriptions:
+    post:
+      tags: [DailyExpense]
+      summary: Create expense description/category
+      operationId: dailyExpenseStoreDescription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+      responses:
+        '201': { description: Description created }
+
+  /api/v1/daily-expense/descriptions/{id}:
+    put:
+      tags: [DailyExpense]
+      summary: Update expense description
+      operationId: dailyExpenseUpdateDescription
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+      responses:
+        '200': { description: Description updated }
+
+    delete:
+      tags: [DailyExpense]
+      summary: Delete expense description
+      operationId: dailyExpenseDestroyDescription
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Description deleted }
+
+  # CRM
+  # ─────────────────────────────────────────
+  # CRM (correct REST API paths)
+  # ─────────────────────────────────────────
+  /api/v1/crm/dashboard:
+    get:
+      tags: [CRM]
+      summary: CRM pipeline dashboard
+      operationId: crmDashboard
+      responses:
+        '200': { description: CRM dashboard stats }
+
+  /api/v1/crm/statuses:
+    get:
+      tags: [CRM]
+      summary: List available CRM lead statuses
+      operationId: crmStatuses
+      responses:
+        '200': { description: Status list }
+
+  /api/v1/crm/leads:
+    get:
+      tags: [CRM]
+      summary: List CRM leads
+      operationId: crmLeadsIndex
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: search, in: query, schema: { type: string } }
+      responses:
+        '200': { description: Leads list }
+
+    post:
+      tags: [CRM]
+      summary: Create a lead
+      operationId: crmLeadsStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                phone: { type: string, nullable: true }
+                email: { type: string, nullable: true }
+                source: { type: string, nullable: true }
+                status: { type: string, default: new }
+                notes: { type: string, nullable: true }
+                assigned_to: { type: integer, nullable: true }
+      responses:
+        '201':
+          description: Lead created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Lead' }
+
+  /api/v1/crm/leads/{id}:
+    get:
+      tags: [CRM]
+      summary: Show a lead
+      operationId: crmLeadsShow
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Lead detail }
+        '404': { description: Not found }
+
+    put:
+      tags: [CRM]
+      summary: Update a lead
+      operationId: crmLeadsUpdate
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Lead' }
+      responses:
+        '200': { description: Lead updated }
+
+    delete:
+      tags: [CRM]
+      summary: Delete a lead
+      operationId: crmLeadsDestroy
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Lead deleted }
+
+  # SERVICES
+  /api/v1/services:
+    get:
+      tags: [Services]
+      summary: List service/warranty claims
+      operationId: servicesIndex
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: status, in: query, schema: { type: string } }
+      responses:
+        '200': { description: Services list }
+    post:
+      tags: [Services]
+      summary: Create a service claim
+      operationId: servicesStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [customer_id, issue]
+              properties:
+                customer_id: { type: integer }
+                product_id: { type: integer, nullable: true }
+                issue: { type: string }
+                notes: { type: string, nullable: true }
+      responses:
+        '201': { description: Claim created }
+  /api/v1/services/{id}:
+    get:
+      tags: [Services]
+      summary: Show a service/warranty claim
+      operationId: servicesShow
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Service detail }
+        '404': { description: Not found }
+
+    delete:
+      tags: [Services]
+      summary: Delete service claim
+      operationId: servicesDestroy
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Deleted }
+
+  /api/v1/services/{id}/status:
+    post:
+      tags: [Services]
+      summary: Update service status
+      operationId: servicesUpdateStatus
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string, enum: [open, in_progress, resolved, closed] }
+      responses:
+        '200': { description: Status updated }
+
+  # ─────────────────────────────────────────
+  # REMINDERS / ANNIVERSARY
+  # ─────────────────────────────────────────
+  /api/v1/reminders/upcoming:
+    get:
+      tags: [Reminders]
+      summary: Get upcoming anniversary/birthday reminders
+      operationId: remindersUpcoming
+      parameters:
+        - { name: days, in: query, schema: { type: integer, default: 7 }, description: Look-ahead days }
+      responses:
+        '200': { description: Upcoming reminders list }
+
+  /api/v1/reminders/today:
+    get:
+      tags: [Reminders]
+      summary: Get reminders due today
+      operationId: remindersToday
+      responses:
+        '200': { description: Today's reminders }
+
+  /api/v1/reminders/send:
+    post:
+      tags: [Reminders]
+      summary: Manually send a reminder
+      operationId: remindersSend
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [customer_id, type, channel]
+              properties:
+                customer_id: { type: integer }
+                type: { type: string, enum: [birthday, anniversary] }
+                channel: { type: string, enum: [whatsapp, email, sms] }
+      responses:
+        '200': { description: Reminder sent }
+
+  # ─────────────────────────────────────────
+  # MANUFACTURING / PRODUCTION
+  # ─────────────────────────────────────────
+  /api/v1/manufacturing:
+    get:
+      tags: [Manufacturing]
+      summary: List manufacturing jobs
+      operationId: manufacturingIndex
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: status, in: query, schema: { type: string } }
+      responses:
+        '200': { description: Manufacturing jobs list }
+
+    post:
+      tags: [Manufacturing]
+      summary: Create a manufacturing job
+      operationId: manufacturingStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [job_name, quantity]
+              properties:
+                job_name: { type: string, description: Name of the production job }
+                product_id: { type: integer, nullable: true, description: Optional linked product/category ID }
+                quantity: { type: number, minimum: 1 }
+                start_date: { type: string, format: date, nullable: true }
+                due_date: { type: string, format: date, nullable: true }
+                notes: { type: string, nullable: true }
+                processes: { type: array, items: { type: integer }, nullable: true, description: Process IDs }
+      responses:
+        '201': { description: Job created }
+
+  /api/v1/manufacturing/summary:
+    get:
+      tags: [Manufacturing]
+      summary: Manufacturing summary statistics
+      operationId: manufacturingSummary
+      responses:
+        '200': { description: Summary stats }
+
+  /api/v1/manufacturing/processes:
+    get:
+      tags: [Manufacturing]
+      summary: List production processes
+      operationId: manufacturingProcesses
+      responses:
+        '200': { description: Processes list }
+
+  /api/v1/manufacturing/{id}:
+    get:
+      tags: [Manufacturing]
+      summary: Show a manufacturing job
+      operationId: manufacturingShow
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Job detail }
+        '404': { description: Not found }
+
+    put:
+      tags: [Manufacturing]
+      summary: Update a manufacturing job
+      operationId: manufacturingUpdate
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notes: { type: string, nullable: true }
+                quantity: { type: number }
+      responses:
+        '200': { description: Job updated }
+
+    delete:
+      tags: [Manufacturing]
+      summary: Delete a manufacturing job
+      operationId: manufacturingDestroy
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Job deleted }
+
+  /api/v1/manufacturing/{id}/status:
+    post:
+      tags: [Manufacturing]
+      summary: Update manufacturing job status
+      operationId: manufacturingUpdateStatus
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string }
+                notes: { type: string, nullable: true }
+      responses:
+        '200': { description: Status updated }
+
+  # ─────────────────────────────────────────
+  # CALENDAR
+  # ─────────────────────────────────────────
+  /api/v1/calendar:
+    get:
+      tags: [Calendar]
+      summary: Get calendar events
+      operationId: calendarIndex
+      parameters:
+        - { name: month, in: query, schema: { type: integer }, description: Month (1-12) }
+        - { name: year, in: query, schema: { type: integer } }
+      responses:
+        '200':
+          description: Calendar events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { type: array, items: { type: object } }
+
+  # ─────────────────────────────────────────
+  # DUE INVOICES
+  # ─────────────────────────────────────────
+  /api/v1/due-invoices:
+    get:
+      tags: [DueInvoices]
+      summary: List overdue/unpaid invoices
+      operationId: dueInvoicesIndex
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: customer_id, in: query, schema: { type: integer } }
+        - { name: overdue_only, in: query, schema: { type: boolean } }
+      responses:
+        '200': { description: Due invoices list }
+
+  /api/v1/due-invoices/summary:
+    get:
+      tags: [DueInvoices]
+      summary: Summary of total outstanding dues
+      operationId: dueInvoicesSummary
+      responses:
+        '200':
+          description: Dues summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      total_due: { type: number }
+                      overdue_count: { type: integer }
+                      customers_with_dues: { type: integer }
+
+  /api/v1/due-invoices/{id}/pay:
+    post:
+      tags: [DueInvoices]
+      summary: Record a payment against a due invoice
+      operationId: dueInvoicesPay
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount]
+              properties:
+                amount: { type: number, format: float }
+                payment_mode: { type: string, example: Cash }
+                notes: { type: string, nullable: true }
+      responses:
+        '200': { description: Payment recorded }
+
+  # ─────────────────────────────────────────
+  # USERS
+  # ─────────────────────────────────────────
+  /api/v1/users:
+    get:
+      tags: [Users]
+      summary: List all tenant users
+      operationId: usersIndex
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: search, in: query, schema: { type: string } }
+      responses:
+        '200': { description: Users list }
+
+    post:
+      tags: [Users]
+      summary: Create a new user
+      operationId: usersStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+                role: { type: string, nullable: true }
+      responses:
+        '201': { description: User created }
+
+  /api/v1/users/{id}:
+    get:
+      tags: [Users]
+      summary: Show a user
+      operationId: usersShow
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: User detail }
+        '404': { description: Not found }
+
+    put:
+      tags: [Users]
+      summary: Update a user
+      operationId: usersUpdate
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, format: password, nullable: true }
+      responses:
+        '200': { description: User updated }
+
+    delete:
+      tags: [Users]
+      summary: Delete a user
+      operationId: usersDestroy
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: User deleted }
+
+  /api/v1/users/{id}/permissions:
+    get:
+      tags: [Users]
+      summary: Get user permissions
+      operationId: usersPermissions
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200':
+          description: User permissions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { type: array, items: { type: string } }
+
+  # ─────────────────────────────────────────
+  # MAIL
+  # ─────────────────────────────────────────
+  /api/v1/mail/accounts:
+    get:
+      tags: [Mail]
+      summary: List connected mail accounts
+      operationId: mailAccounts
+      responses:
+        '200': { description: Mail accounts list }
+
+    post:
+      tags: [Mail]
+      summary: Add a mail account
+      operationId: mailStoreAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+                host: { type: string, nullable: true }
+                port: { type: integer, nullable: true }
+      responses:
+        '201': { description: Account added }
+
+  /api/v1/mail/accounts/{id}:
+    delete:
+      tags: [Mail]
+      summary: Remove a mail account
+      operationId: mailDestroyAccount
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Account removed }
+
+  /api/v1/mail/send:
+    post:
+      tags: [Mail]
+      summary: Send an email
+      operationId: mailSend
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [to, subject, body]
+              properties:
+                to: { type: string, format: email }
+                subject: { type: string }
+                body: { type: string }
+      responses:
+        '200': { description: Email sent }
+
+  /api/v1/mail/broadcast:
+    post:
+      tags: [Mail]
+      summary: Broadcast email to multiple recipients
+      operationId: mailBroadcast
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subject, body]
+              properties:
+                subject: { type: string }
+                body: { type: string }
+                recipient_group: { type: string, enum: [all_customers, all_suppliers, custom], default: all_customers }
+                emails: { type: array, items: { type: string, format: email }, description: Used when recipient_group is custom }
+      responses:
+        '200': { description: Broadcast sent }
+
+  /api/v1/mail/logs:
+    get:
+      tags: [Mail]
+      summary: Get mail send logs
+      operationId: mailLogs
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Mail logs }
+
+  /api/v1/mail/sync:
+    post:
+      tags: [Mail]
+      summary: Sync inbox for connected mail account
+      operationId: mailSync
+      responses:
+        '200': { description: Sync result }
+
+  # ─────────────────────────────────────────
+  # PRODUCT MASTER
+  # ─────────────────────────────────────────
+  /api/v1/products/master:
+    get:
+      tags: [Products]
+      summary: List products (master CRUD)
+      operationId: productsMasterIndex
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: search, in: query, schema: { type: string } }
+        - { name: category, in: query, schema: { type: string } }
+      responses:
+        '200': { description: Product list }
+
+    post:
+      tags: [Products]
+      summary: Create a product (master)
+      operationId: productsMasterStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [product_name]
+              properties:
+                product_name: { type: string }
+                barcode: { type: string, nullable: true }
+                mrp: { type: number, format: float, default: 0 }
+                dealer_price: { type: number, format: float, default: 0 }
+
+                stock: { type: integer, default: 0 }
+                unit: { type: string, default: pcs }
+                product_type: { type: string, nullable: true }
+                hsn: { type: string, nullable: true }
+                tax_rate: { type: number, format: float, default: 0 }
+      responses:
+        '201': { description: Product created }
+
+  /api/v1/products/master/categories:
+    get:
+      tags: [Products]
+      summary: List distinct product categories/types
+      operationId: productsMasterCategories
+      responses:
+        '200':
+          description: Category list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { type: array, items: { type: string } }
+
+  /api/v1/products/master/{id}:
+    get:
+      tags: [Products]
+      summary: Show a product (master)
+      operationId: productsMasterShow
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Product detail }
+        '404': { description: Not found }
+
+    put:
+      tags: [Products]
+      summary: Update a product (master)
+      operationId: productsMasterUpdate
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Product' }
+      responses:
+        '200': { description: Product updated }
+
+    delete:
+      tags: [Products]
+      summary: Delete a product (master)
+      operationId: productsMasterDestroy
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Product deleted }
+
+  # ─────────────────────────────────────────
+  # BUSINESS REPORTS (correct /reports/* paths)
+  # ─────────────────────────────────────────
+  /api/v1/reports/dashboard:
+    get:
+      tags: [BusinessReports]
+      summary: Business reports dashboard
+      operationId: reportsApiDashboard
+      responses:
+        '200': { description: Dashboard stats }
+
+  /api/v1/reports/sales:
+    get:
+      tags: [BusinessReports]
+      summary: Sales report
+      operationId: reportsApiSales
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Sales data }
+
+  /api/v1/reports/purchase:
+    get:
+      tags: [BusinessReports]
+      summary: Purchase report
+      operationId: reportsApiPurchase
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Purchase data }
+
+  /api/v1/reports/profit:
+    get:
+      tags: [BusinessReports]
+      summary: Profit & loss report
+      operationId: reportsApiProfit
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Profit data }
+
+  /api/v1/reports/stock:
+    get:
+      tags: [BusinessReports]
+      summary: Stock report
+      operationId: reportsApiStock
+      responses:
+        '200': { description: Stock data }
+
+  /api/v1/reports/customers:
+    get:
+      tags: [BusinessReports]
+      summary: Customer analytics report
+      operationId: reportsApiCustomers
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Customer report }
+
+  /api/v1/reports/product-performance:
+    get:
+      tags: [BusinessReports]
+      summary: Product performance report
+      operationId: reportsApiProductPerformance
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Product performance data }
+
+  /api/v1/reports/payment:
+    get:
+      tags: [BusinessReports]
+      summary: Payment collection report
+      operationId: reportsApiPayment
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Payment data }
+
+  /api/v1/reports/tax:
+    get:
+      tags: [BusinessReports]
+      summary: Tax / GST report
+      operationId: reportsApiTax
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Tax data }
+
+  /api/v1/reports/expense:
+    get:
+      tags: [BusinessReports]
+      summary: Expense report
+      operationId: reportsApiExpense
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Expense data }
+
+  /api/v1/reports/credit:
+    get:
+      tags: [BusinessReports]
+      summary: Credit / outstanding dues report
+      operationId: reportsApiCredit
+      responses:
+        '200': { description: Credit data }
+
+  /api/v1/reports/vendor:
+    get:
+      tags: [BusinessReports]
+      summary: Vendor/supplier report
+      operationId: reportsApiVendor
+      responses:
+        '200': { description: Vendor data }
+
+  /api/v1/reports/discount:
+    get:
+      tags: [BusinessReports]
+      summary: Discount usage report
+      operationId: reportsApiDiscount
+      responses:
+        '200': { description: Discount data }
+
+  /api/v1/reports/returns:
+    get:
+      tags: [BusinessReports]
+      summary: Returns report
+      operationId: reportsApiReturns
+      responses:
+        '200': { description: Returns data }
+
+  /api/v1/reports/financial:
+    get:
+      tags: [BusinessReports]
+      summary: Financial summary report
+      operationId: reportsApiFinancial
+      responses:
+        '200': { description: Financial data }
+
+  /api/v1/reports/inventory-movement:
+    get:
+      tags: [BusinessReports]
+      summary: Inventory movement report
+      operationId: reportsApiInventoryMovement
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Inventory movement data }
+
+
+  # ─────────────────────────────────────────
+  # PRODUCTION
+  # ─────────────────────────────────────────
+  /production:
+    get:
+      tags: [Production]
+      summary: Production jobs list
+      operationId: productionIndex
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: status, in: query, schema: { type: string } }
+      responses:
+        '200': { description: Production jobs list }
+
+  /production/create:
+    get:
+      tags: [Production]
+      summary: New production job form
+      operationId: productionCreate
+      responses:
+        '200': { description: Create job form }
+
+  /production/store:
+    post:
+      tags: [Production]
+      summary: Create a production job
+      operationId: productionStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                stages: { type: array, items: { type: string } }
+                notes: { type: string, nullable: true }
+      responses:
+        '201': { description: Production job created }
+        '422': { description: Validation error }
+
+  /production/{production}/accept:
+    post:
+      tags: [Production]
+      summary: Accept a production stage
+      operationId: productionAcceptStage
+      parameters:
+        - { name: production, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Stage accepted }
+
+  /production/{production}/notes:
+    post:
+      tags: [Production]
+      summary: Save notes on a production job
+      operationId: productionSaveNotes
+      parameters:
+        - { name: production, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notes: { type: string }
+      responses:
+        '200': { description: Notes saved }
+
+  /production/{production}/hold:
+    post:
+      tags: [Production]
+      summary: Hold a production job
+      operationId: productionHold
+      parameters:
+        - { name: production, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Job put on hold }
+
+  /production/{production}/resume:
+    post:
+      tags: [Production]
+      summary: Resume a held production job
+      operationId: productionResume
+      parameters:
+        - { name: production, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Job resumed }
+
+  /production/{production}/update-stage:
+    post:
+      tags: [Production]
+      summary: Update production job stage
+      operationId: productionUpdateStage
+      parameters:
+        - { name: production, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stage: { type: string }
+      responses:
+        '200': { description: Stage updated }
+
+  /production/scheduler/update-job-stage:
+    post:
+      tags: [Production]
+      summary: Scheduler — update job stage
+      operationId: productionSchedulerUpdateStage
+      responses:
+        '200': { description: Scheduler stage updated }
+
+  /production/process/store:
+    post:
+      tags: [Production]
+      summary: Store a production process
+      operationId: productionProcessStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                description: { type: string, nullable: true }
+      responses:
+        '201': { description: Process created }
+
+  /production/process/{process}:
+    delete:
+      tags: [Production]
+      summary: Delete a production process
+      operationId: productionProcessDestroy
+      parameters:
+        - { name: process, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Process deleted }
+
+  /production/mis-costs:
+    get:
+      tags: [Production]
+      summary: MIS costs list
+      operationId: productionMisCosts
+      responses:
+        '200': { description: MIS costs }
+    post:
+      tags: [Production]
+      summary: Store a MIS cost entry
+      operationId: productionStoreMisCost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description: { type: string }
+                amount: { type: number, format: float }
+      responses:
+        '201': { description: MIS cost recorded }
+
+  /production/shift-kpi:
+    get:
+      tags: [Production]
+      summary: Shift KPI list
+      operationId: productionShiftKpi
+      responses:
+        '200': { description: Shift KPI data }
+    post:
+      tags: [Production]
+      summary: Store shift KPI entry
+      operationId: productionStoreShiftKpi
+      responses:
+        '201': { description: Shift KPI stored }
+
+  /api/v1/setup:
+    get:
+      tags: [Setup]
+      summary: Get tenant settings
+      operationId: setupApiIndex
+      responses:
+        '200': { description: Tenant settings }
+
+    put:
+      tags: [Setup]
+      summary: Update tenant settings
+      operationId: setupApiUpdate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                business_name: { type: string }
+                address: { type: string }
+                phone: { type: string }
+                gstin: { type: string }
+                currency: { type: string }
+                timezone: { type: string }
+      responses:
+        '200': { description: Settings updated }
+
+  /api/v1/setup/backup:
+    get:
+      tags: [Setup]
+      summary: Download database backup
+      operationId: setupApiBackup
+      responses:
+        '200':
+          description: SQL/ZIP backup file
+          content:
+            application/zip:
+              schema: { type: string, format: binary }
+
+  /api/v1/setup/modules:
+    get:
+      tags: [Setup]
+      summary: List available modules and their enabled status
+      operationId: setupApiModules
+      responses:
+        '200':
+          description: Module list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { type: array, items: { type: object } }
+
+  /api/v1/setup/business:
+    get:
+      tags: [Setup]
+      summary: Get business profile info
+      operationId: setupApiBusiness
+      responses:
+        '200':
+          description: Business profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { type: object }
+
+  # BUSINESS REPORTS
+  /api/v1/businessreport:
+    get:
+      tags: [BusinessReports]
+      summary: Reports hub
+      operationId: brIndex
+      responses:
+        '200': { description: Hub page }
+  /api/v1/businessreport/sales:
+    get:
+      tags: [BusinessReports]
+      summary: Sales report
+      operationId: brSales
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+        - { name: group_by, in: query, schema: { type: string, enum: [day, week, month] } }
+      responses:
+        '200': { description: Sales data }
+  /api/v1/businessreport/purchase:
+    get:
+      tags: [BusinessReports]
+      summary: Purchase report
+      operationId: brPurchase
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Purchase data }
+  /api/v1/businessreport/stock:
+    get:
+      tags: [BusinessReports]
+      summary: Stock report
+      operationId: brStock
+      responses:
+        '200': { description: Stock data }
+  /api/v1/businessreport/profit:
+    get:
+      tags: [BusinessReports]
+      summary: Profit & loss report
+      operationId: brProfit
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: P&L data }
+  /api/v1/businessreport/employee:
+    get:
+      tags: [BusinessReports]
+      summary: Employee performance report
+      operationId: brEmployee
+      responses:
+        '200': { description: Employee report }
+  /api/v1/businessreport/customer:
+    get:
+      tags: [BusinessReports]
+      summary: Customer analytics
+      operationId: brCustomer
+      responses:
+        '200': { description: Customer report }
+  /api/v1/businessreport/payment:
+    get:
+      tags: [BusinessReports]
+      summary: Payment mode report
+      operationId: brPayment
+      responses:
+        '200': { description: Payment report }
+  /api/v1/businessreport/tax:
+    get:
+      tags: [BusinessReports]
+      summary: Tax summary report
+      operationId: brTax
+      responses:
+        '200': { description: Tax report }
+  /api/v1/businessreport/financial:
+    get:
+      tags: [BusinessReports]
+      summary: Financial summary
+      operationId: brFinancial
+      responses:
+        '200': { description: Financial report }
+  /api/v1/businessreport/vendor:
+    get:
+      tags: [BusinessReports]
+      summary: Vendor/supplier report
+      operationId: brVendor
+      responses:
+        '200': { description: Vendor report }
+  /api/v1/businessreport/product-performance:
+    get:
+      tags: [BusinessReports]
+      summary: Product performance report
+      operationId: brProductPerformance
+      responses:
+        '200': { description: Product performance }
+  /api/v1/businessreport/discount:
+    get:
+      tags: [BusinessReports]
+      summary: Discount analysis report
+      operationId: brDiscount
+      responses:
+        '200': { description: Discount report }
+  /api/v1/businessreport/returns:
+    get:
+      tags: [BusinessReports]
+      summary: Returns analysis
+      operationId: brReturns
+      responses:
+        '200': { description: Returns report }
+  /api/v1/businessreport/credit:
+    get:
+      tags: [BusinessReports]
+      summary: Credit / outstanding dues
+      operationId: brCredit
+      responses:
+        '200': { description: Credit report }
+  /api/v1/businessreport/inventory-movement:
+    get:
+      tags: [BusinessReports]
+      summary: Inventory movement report
+      operationId: brInventoryMovement
+      responses:
+        '200': { description: Movement data }
+  /api/v1/businessreport/expiry:
+    get:
+      tags: [BusinessReports]
+      summary: Expiring products report
+      operationId: brExpiry
+      responses:
+        '200': { description: Expiry data }
+  /api/v1/businessreport/expiry/dispose:
+    post:
+      tags: [BusinessReports]
+      summary: Mark expired items as disposed
+      operationId: brDispose
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product_ids: { type: array, items: { type: integer } }
+      responses:
+        '200': { description: Disposed }
+  /api/v1/businessreport/expense:
+    get:
+      tags: [BusinessReports]
+      summary: Expense report
+      operationId: brExpense
+      responses:
+        '200': { description: Expense report }
+  /api/v1/businessreport/cash-register:
+    get:
+      tags: [BusinessReports]
+      summary: Cash register report
+      operationId: brCashRegister
+      responses:
+        '200': { description: Cash register data }
+  /api/v1/businessreport/loyalty:
+    get:
+      tags: [BusinessReports]
+      summary: Loyalty / membership report
+      operationId: brLoyalty
+      responses:
+        '200': { description: Loyalty report }
+  /api/v1/businessreport/delivery:
+    get:
+      tags: [BusinessReports]
+      summary: Delivery report
+      operationId: brDelivery
+      responses:
+        '200': { description: Delivery report }
+  /api/v1/businessreport/reorder:
+    get:
+      tags: [BusinessReports]
+      summary: Reorder point report
+      operationId: brReorder
+      responses:
+        '200': { description: Reorder data }
+  /api/v1/businessreport/business-summary:
+    get:
+      tags: [BusinessReports]
+      summary: Overall business summary
+      operationId: brBusinessSummary
+      responses:
+        '200': { description: Summary }
+  /api/v1/businessreport/multi-branch-stock:
+    get:
+      tags: [BusinessReports]
+      summary: Multi-branch stock comparison
+      operationId: brMultiBranchStock
+      responses:
+        '200': { description: Branch stock data }
+
+  # ─────────────────────────────────────────
+  # TALLY INTEGRATION
+  # ─────────────────────────────────────────
+  /api/v1/tally:
+    get:
+      tags: [Tally]
+      summary: Tally integration overview & status
+      operationId: tallyIndex
+      responses:
+        '200':
+          description: Tally module status and endpoint links
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  module: { type: string }
+                  version: { type: string }
+                  data:
+                    type: object
+                    properties:
+                      company_name: { type: string, nullable: true }
+                      tally_enabled: { type: boolean }
+                      last_import_at: { type: string, nullable: true }
+                      last_import_count: { type: integer }
+                  endpoints: { type: object }
+
+  /api/v1/tally/settings:
+    get:
+      tags: [Tally]
+      summary: Get Tally ledger configuration
+      operationId: tallySettings
+      responses:
+        '200':
+          description: Tally settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      tally_company_name: { type: string, nullable: true }
+                      tally_ledger_sales: { type: string, nullable: true }
+                      tally_ledger_purchase: { type: string, nullable: true }
+                      tally_ledger_cash: { type: string, nullable: true }
+                      tally_ledger_gst: { type: string, nullable: true }
+                      tally_enabled: { type: string, nullable: true }
+
+    post:
+      tags: [Tally]
+      summary: Update Tally ledger configuration
+      operationId: tallyUpdateSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tally_company_name: { type: string, nullable: true }
+                tally_ledger_sales: { type: string, nullable: true }
+                tally_ledger_purchase: { type: string, nullable: true }
+                tally_ledger_cash: { type: string, nullable: true }
+                tally_ledger_gst: { type: string, nullable: true }
+      responses:
+        '200':
+          description: Settings updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+
+  /api/v1/tally/export/preview:
+    get:
+      tags: [Tally]
+      summary: Preview how many records will be exported to Tally
+      operationId: tallyExportPreview
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema: { type: string, enum: [sales, purchases, masters] }
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Export preview count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  type: { type: string }
+                  from: { type: string }
+                  to: { type: string }
+                  count: { type: integer }
+                  message: { type: string }
+
+  /api/v1/tally/export:
+    post:
+      tags: [Tally]
+      summary: Initiate a Tally XML export
+      operationId: tallyExport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type]
+              properties:
+                type: { type: string, enum: [sales, purchases, masters] }
+                from: { type: string, format: date, nullable: true }
+                to: { type: string, format: date, nullable: true }
+      responses:
+        '200':
+          description: Export initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  export_url: { type: string }
+
+  /api/v1/tally/import/status:
+    get:
+      tags: [Tally]
+      summary: Check the status of the last Tally import
+      operationId: tallyImportStatus
+      responses:
+        '200':
+          description: Last import status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      last_import_at: { type: string, nullable: true }
+                      last_import_count: { type: integer }
+
+  /api/v1/tally/logs:
+    get:
+      tags: [Tally]
+      summary: Get Tally sync activity logs
+      operationId: tallyLogs
+      responses:
+        '200':
+          description: Tally logs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { type: array, items: { type: object } }
+                  message: { type: string }
+
+  /api/v1/tally/validate:
+    post:
+      tags: [Tally]
+      summary: Validate Tally company name against saved settings
+      operationId: tallyValidate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [company_name]
+              properties:
+                company_name: { type: string, example: My Company Pvt Ltd }
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  match: { type: boolean }
+                  message: { type: string }
+
+  # GST
+  /api/v1/gst/validate:
+    post:
+      tags: [GST]
+      summary: Validate a GSTIN number
+      operationId: gstValidate
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [gstin]
+              properties:
+                gstin: { type: string, example: 29ABCDE1234F1Z5 }
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid: { type: boolean }
+                  data: { type: object }
+
+  # ─────────────────────────────────────────
+  # API v1 (Sanctum)
+  # ─────────────────────────────────────────
+  /api/v1/login:
+    post:
+      tags: [API-v1]
+      summary: Get API token
+      operationId: apiLogin
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200':
+          description: Token issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+                  user: { type: object }
+        '422': { description: Invalid credentials }
+
+  /api/v1/billing:
+    get:
+      tags: [API-v1]
+      summary: List bills (API)
+      operationId: apiBillingIndex
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: Bills list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: '#/components/schemas/Bill' } }
+                  meta: { $ref: '#/components/schemas/PaginatedMeta' }
+    post:
+      tags: [API-v1]
+      summary: Create bill (API)
+      operationId: apiBillingStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items, payment_mode]
+              properties:
+                customer_id: { type: integer, nullable: true }
+                items: { type: array, items: { $ref: '#/components/schemas/BillItem' } }
+                payment_mode: { type: string }
+                paid: { type: number }
+      responses:
+        '201':
+          description: Bill created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Bill' }
+
+  /api/v1/billing/summary:
+    get:
+      tags: [API-v1]
+      summary: Billing summary stats
+      operationId: apiBillingSummary
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: Summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_sales: { type: number }
+                  total_bills: { type: integer }
+                  total_tax: { type: number }
+
+  /api/v1/billing/search-customer:
+    get:
+      tags: [API-v1]
+      summary: Search customer (API)
+      operationId: apiSearchCustomer
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Matching customers
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Customer' } }
+
+  /api/v1/billing/quick-data:
+    get:
+      tags: [API-v1]
+      summary: Quick billing data (products + customers)
+      operationId: apiQuickData
+      responses:
+        '200':
+          description: Quick data payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products: { type: array, items: { $ref: '#/components/schemas/Product' } }
+                  customers: { type: array, items: { $ref: '#/components/schemas/Customer' } }
+
+  /api/v1/billing/{id}:
+    get:
+      tags: [API-v1]
+      summary: Get bill by ID (API)
+      operationId: apiBillingShow
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200':
+          description: Bill detail
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Bill' }
+    delete:
+      tags: [API-v1]
+      summary: Delete bill (API)
+      operationId: apiBillingDestroy
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Deleted }
+
+  /api/v1/billing/{id}/status:
+    put:
+      tags: [API-v1]
+      summary: Update bill status (API)
+      operationId: apiBillingUpdateStatus
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string, enum: [draft, completed, returned, cancelled] }
+      responses:
+        '200': { description: Status updated }
+
